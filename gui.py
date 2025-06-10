@@ -3,6 +3,9 @@ from tkinter import ttk
 from fetcher import Fetcher
 from models.book import Book
 from reader import BookmarkStore
+from pathlib import Path
+
+LIBRARY_DIR = Path("library")
 
 
 class PyReaderGUI:
@@ -54,6 +57,11 @@ class PyReaderGUI:
         self.next_button = ttk.Button(nav_frame, text="Next ⏩", command=self.next_page)
         self.next_button.pack(side="right")
 
+        self.library_button = ttk.Button(
+            search_frame, text="My Library", command=self.load_local_books
+        )
+        self.library_button.pack(side="left", padx=5)
+
     # Placeholder methods
     def search_books(self):
         keyword = self.search_var.get()
@@ -96,7 +104,10 @@ class PyReaderGUI:
         title, book_id = self.search_results[index]
 
         try:
-            filepath = self.fetcher.download_txt(title, book_id)
+            if book_id:  # If online search result
+                filepath = self.fetcher.download_txt(title, book_id)
+            else:  # If local book
+                filepath = LIBRARY_DIR / f"{title}.txt"
             start_page = self.bookmark_store.get(title)
             self.current_book = Book(title, filepath)
             self.current_book.load(start_page)
@@ -109,3 +120,13 @@ class PyReaderGUI:
             content = self.current_book.get_current_page()
             self.book_text.delete("1.0", tk.END)
             self.book_text.insert(tk.END, content)
+
+    def load_local_books(self):
+        self.book_list.delete(0, tk.END)
+        self.search_results = []  # Clear web search data
+
+        for file in LIBRARY_DIR.glob("*.txt"):
+            title = file.stem
+            self.book_list.insert(tk.END, title)
+            # Store dummy book_id (not used for local)
+            self.search_results.append((title, None))
