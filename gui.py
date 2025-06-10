@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from fetcher import Fetcher
 from models.book import Book
+from reader import BookmarkStore
 
 
 class PyReaderGUI:
@@ -14,6 +15,7 @@ class PyReaderGUI:
         self.search_results = []  # store (title, book_id) tuples
         self.book_list.bind("<<ListboxSelect>>", self.on_book_select)
         self.current_book = None  # track which book is open
+        self.bookmark_store = BookmarkStore()
 
     def create_widgets(self):
         # Top: Search Bar
@@ -70,11 +72,17 @@ class PyReaderGUI:
         if self.current_book:
             self.current_book.next_page()
             self.display_current_page()
+            self.bookmark_store.save(
+                self.current_book.title, self.current_book.current_page_index
+            )
 
     def prev_page(self):
         if self.current_book:
             self.current_book.prev_page()
             self.display_current_page()
+            self.bookmark_store.save(
+                self.current_book.title, self.current_book.current_page_index
+            )
 
     def on_book_select(self, event):
         if not self.search_results:
@@ -89,7 +97,9 @@ class PyReaderGUI:
 
         try:
             filepath = self.fetcher.download_txt(title, book_id)
+            start_page = self.bookmark_store.get(title)
             self.current_book = Book(title, filepath)
+            self.current_book.load(start_page)
             self.display_current_page()
         except Exception as e:
             print("❌ Failed to download or open book:", e)
