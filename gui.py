@@ -13,12 +13,23 @@ class PyReaderGUI:
         self.master = master
         self.master.title("📖 PyReader - Public Domain eBook Reader")
         self.master.geometry("800x600")
-        self.create_widgets()
+
+        # Initialize state
+        self.current_font_size = 12
+        self.dark_mode = False
+        self.default_font = ("Courier New", self.current_font_size)
+        self.search_results = []
+        self.current_book = None
+
+        # Models
         self.fetcher = Fetcher()
-        self.search_results = []  # store (title, book_id) tuples
-        self.book_list.bind("<<ListboxSelect>>", self.on_book_select)
-        self.current_book = None  # track which book is open
         self.bookmark_store = BookmarkStore()
+
+        # Create GUI elements
+        self.create_widgets()
+
+        # ✅ Safe to bind now
+        self.book_list.bind("<<ListboxSelect>>", self.on_book_select)
 
     def create_widgets(self):
         # Top: Search Bar
@@ -35,8 +46,14 @@ class PyReaderGUI:
         self.search_button.pack(side="left", padx=5)
 
         # Left: Book List
-        self.book_list = tk.Listbox(self.master)
-        self.book_list.pack(side="left", fill="y", padx=10, pady=5)
+        # self.book_list = tk.Listbox(self.master)
+        # self.book_list.pack(side="left", fill="y", padx=10, pady=5)
+
+        left_frame = ttk.Frame(self.master)
+        left_frame.pack(side="left", fill="y", padx=10, pady=5)
+
+        self.book_list = tk.Listbox(left_frame, width=30)  # wider
+        self.book_list.pack(fill="both", expand=True)
 
         # Right: Book Content
         text_frame = ttk.Frame(self.master)
@@ -45,22 +62,36 @@ class PyReaderGUI:
         self.book_text = tk.Text(text_frame, wrap="word")
         self.book_text.pack(fill="both", expand=True)
 
-        # Bottom: Navigation
+        # Bottom: Navigation Frame
         nav_frame = ttk.Frame(self.master)
         nav_frame.pack(fill="x", padx=10, pady=5)
 
+        # Previous/Next Buttons
         self.prev_button = ttk.Button(
             nav_frame, text="⏪ Previous", command=self.prev_page
         )
         self.prev_button.pack(side="left")
 
         self.next_button = ttk.Button(nav_frame, text="Next ⏩", command=self.next_page)
-        self.next_button.pack(side="right")
+        self.next_button.pack(side="left", padx=5)
 
-        self.library_button = ttk.Button(
-            search_frame, text="My Library", command=self.load_local_books
+        # Font size toggle
+        font_frame = ttk.Frame(nav_frame)
+        font_frame.pack(side="left", padx=10)
+
+        ttk.Label(font_frame, text="Font Size:").pack(side="left")
+        self.font_size_box = ttk.Combobox(
+            font_frame, values=[10, 12, 14, 16, 18], width=3
         )
-        self.library_button.pack(side="left", padx=5)
+        self.font_size_box.set(self.current_font_size)
+        self.font_size_box.bind("<<ComboboxSelected>>", self.update_font_size)
+        self.font_size_box.pack(side="left")
+
+        # Dark mode toggle
+        self.theme_button = ttk.Button(
+            nav_frame, text="Toggle Dark Mode", command=self.toggle_dark_mode
+        )
+        self.theme_button.pack(side="right")
 
     # Placeholder methods
     def search_books(self):
@@ -130,3 +161,14 @@ class PyReaderGUI:
             self.book_list.insert(tk.END, title)
             # Store dummy book_id (not used for local)
             self.search_results.append((title, None))
+
+    def update_font_size(self, event=None):
+        self.current_font_size = int(self.font_size_box.get())
+        self.book_text.config(font=("Courier New", self.current_font_size))
+
+    def toggle_dark_mode(self):
+        self.dark_mode = not self.dark_mode
+        bg = "#1e1e1e" if self.dark_mode else "white"
+        fg = "white" if self.dark_mode else "black"
+        self.book_text.config(bg=bg, fg=fg, insertbackground=fg)
+        self.book_list.config(bg=bg, fg=fg)

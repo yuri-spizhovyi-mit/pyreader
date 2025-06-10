@@ -12,10 +12,24 @@ class Book:
     def load(self, start_page=0):
         with open(self.filepath, "r", encoding="utf-8", errors="ignore") as file:
             content = file.read()
-            self.pages = [
-                content[i : i + self.page_size]
-                for i in range(0, len(content), self.page_size)
-            ]
+            words = content.split()
+            self.pages = []
+
+            page_words = []
+            char_count = 0
+
+            for word in words:
+                page_words.append(word)
+                char_count += len(word) + 1  # space
+
+                if char_count >= self.page_size:
+                    self.pages.append(" ".join(page_words))
+                    page_words = []
+                    char_count = 0
+
+            if page_words:
+                self.pages.append(" ".join(page_words))
+
             self.current_page_index = start_page
 
     def get_current_page(self) -> str:
