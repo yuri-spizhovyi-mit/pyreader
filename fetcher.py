@@ -4,6 +4,7 @@ from pathlib import Path
 
 LIBRARY_DIR = Path("library")
 
+
 class Fetcher:
     def __init__(self):
         LIBRARY_DIR.mkdir(exist_ok=True)

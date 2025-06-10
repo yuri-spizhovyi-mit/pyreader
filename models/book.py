@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 class Book:
     def __init__(self, title: str, filepath: Path):
         self.title = title
@@ -10,9 +11,12 @@ class Book:
 
     def load(self):
         """Load and split book content into pages."""
-        with open(self.filepath, 'r', encoding='utf-8', errors='ignore') as file:
+        with open(self.filepath, "r", encoding="utf-8", errors="ignore") as file:
             content = file.read()
-            self.pages = [content[i:i + self.page_size] for i in range(0, len(content), self.page_size)]
+            self.pages = [
+                content[i : i + self.page_size]
+                for i in range(0, len(content), self.page_size)
+            ]
 
     def get_current_page(self) -> str:
         if not self.pages:
