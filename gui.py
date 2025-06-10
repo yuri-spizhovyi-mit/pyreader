@@ -1,13 +1,16 @@
 import tkinter as tk
 from tkinter import ttk
+from fetcher import Fetcher
+
 
 class PyReaderGUI:
     def __init__(self, master):
         self.master = master
         self.master.title("📖 PyReader - Public Domain eBook Reader")
         self.master.geometry("800x600")
-
         self.create_widgets()
+        self.fetcher = Fetcher()
+        self.search_results = []  # store (title, book_id) tuples
 
     def create_widgets(self):
         # Top: Search Bar
@@ -44,7 +47,17 @@ class PyReaderGUI:
 
     # Placeholder methods
     def search_books(self):
-        print("Searching for:", self.search_var.get())
+        keyword = self.search_var.get()
+        if not keyword.strip():
+            return
+
+        self.search_results = self.fetcher.search(keyword)
+        self.book_list.delete(0, tk.END)
+
+        for title, _ in self.search_results:
+            self.book_list.insert(tk.END, title)
+
+        print(f"Found {len(self.search_results)} books.")
 
     def next_page(self):
         print("Next page")
