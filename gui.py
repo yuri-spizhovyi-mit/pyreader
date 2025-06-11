@@ -1,5 +1,11 @@
 import tkinter as tk
-from tkinter import ttk
+import ttkbootstrap as tb
+from ttkbootstrap.widgets import Button, Label, Combobox, Frame, Labelframe
+
+from ttkbootstrap import Style
+
+from ttkbootstrap.constants import *
+from tkinter import StringVar
 from fetcher import Fetcher
 from models.book import Book
 from reader import BookmarkStore
@@ -33,54 +39,64 @@ class PyReaderGUI:
 
     def create_widgets(self):
         # Top: Search Bar
-        search_frame = ttk.Frame(self.master)
+        search_frame = tb.Frame(self.master)
         search_frame.pack(fill="x", padx=10, pady=5)
 
-        self.search_var = tk.StringVar()
-        self.search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
+        self.search_var = StringVar()
+        self.search_entry = tb.Entry(search_frame, textvariable=self.search_var)
         self.search_entry.pack(side="left", fill="x", expand=True)
 
-        self.search_button = ttk.Button(
-            search_frame, text="Search", command=self.search_books
+        self.search_button = Button(
+            search_frame,
+            text="🔍 Search",
+            command=self.search_books,
+            bootstyle="primary"
         )
+
         self.search_button.pack(side="left", padx=5)
 
+        # ✅ Add "My Library" button right after "Search"
+        self.library_button = tb.Button(
+            search_frame, text="My Library", command=self.load_local_books
+        )
+        self.library_button.pack(side="left", padx=5)
+
         # Left: Book List
-        # self.book_list = tk.Listbox(self.master)
+        # self.book_list = tb.Listbox(self.master)
         # self.book_list.pack(side="left", fill="y", padx=10, pady=5)
 
-        left_frame = ttk.Frame(self.master)
+        left_frame = tb.Frame(self.master)
         left_frame.pack(side="left", fill="y", padx=10, pady=5)
 
         self.book_list = tk.Listbox(left_frame, width=30)  # wider
         self.book_list.pack(fill="both", expand=True)
 
         # Right: Book Content
-        text_frame = ttk.Frame(self.master)
+        text_frame = tb.Frame(self.master)
         text_frame.pack(side="right", fill="both", expand=True, padx=10, pady=5)
 
         self.book_text = tk.Text(text_frame, wrap="word")
         self.book_text.pack(fill="both", expand=True)
 
         # Bottom: Navigation Frame
-        nav_frame = ttk.Frame(self.master)
+        nav_frame = tb.Frame(self.master)
         nav_frame.pack(fill="x", padx=10, pady=5)
 
         # Previous/Next Buttons
-        self.prev_button = ttk.Button(
+        self.prev_button = tb.Button(
             nav_frame, text="⏪ Previous", command=self.prev_page
         )
         self.prev_button.pack(side="left")
 
-        self.next_button = ttk.Button(nav_frame, text="Next ⏩", command=self.next_page)
+        self.next_button = tb.Button(nav_frame, text="Next ⏩", command=self.next_page)
         self.next_button.pack(side="left", padx=5)
 
         # Font size toggle
-        font_frame = ttk.Frame(nav_frame)
+        font_frame = tb.Frame(nav_frame)
         font_frame.pack(side="left", padx=10)
 
-        ttk.Label(font_frame, text="Font Size:").pack(side="left")
-        self.font_size_box = ttk.Combobox(
+        tb.Label(font_frame, text="Font Size:").pack(side="left")
+        self.font_size_box = tb.Combobox(
             font_frame, values=[10, 12, 14, 16, 18], width=3
         )
         self.font_size_box.set(self.current_font_size)
@@ -88,7 +104,7 @@ class PyReaderGUI:
         self.font_size_box.pack(side="left")
 
         # Dark mode toggle
-        self.theme_button = ttk.Button(
+        self.theme_button = tb.Button(
             nav_frame, text="Toggle Dark Mode", command=self.toggle_dark_mode
         )
         self.theme_button.pack(side="right")
@@ -172,3 +188,10 @@ class PyReaderGUI:
         fg = "white" if self.dark_mode else "black"
         self.book_text.config(bg=bg, fg=fg, insertbackground=fg)
         self.book_list.config(bg=bg, fg=fg)
+        # Add styling to entry and frame if desired
+        self.search_entry.config(bg=bg, fg=fg, insertbackground=fg)
+        self.font_size_box.config(background=bg, foreground=fg)
+
+    def reset_view(self):
+        self.book_text.delete("1.0", "end")
+        self.current_book = None
